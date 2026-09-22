@@ -1,0 +1,39 @@
+<!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DG7P4WLB0Y"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    
+    gtag('config', 'G-DG7P4WLB0Y');
+  
+    $(document).on('change', '#bins', function(e) {
+      ga('send', 'event', 'widget', 'select_bins', $(e.currentTarget).val());
+    });
+
+    $(document).on('shiny:disconnected', function(e) {
+      gtag('event', 'disconnect', { 
+        'event_label' : 'Disconnect',
+        'event_category' : 'Disconnect'
+      });
+    });
+  
+  $(document).on('click', 'ul#navlistPanel', function(e) {
+    gtag('event', 'navlistPanel', {'event_category' : 'navlist click',
+    'event_label' : document.querySelector(
+      'ul#navlistPanel > li.active > a'
+    ).getAttribute('data-value')
+    });
+  });
+  
+  $(document).on('click', 'ul#dash', function(e) {
+    gtag('event', 'tabsetPanel', {'event_category' : 'tabset click',
+    'event_label' : document.querySelector(
+      'ul#dash > li.active > a'
+    ).getAttribute('data-value')
+    });
+  });
+  
+  
+  </script>
+      
