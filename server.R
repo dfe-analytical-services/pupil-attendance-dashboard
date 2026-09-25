@@ -60,6 +60,8 @@ server <- function(input, output, session) {
   latest_time_period <- reactive({
     eesyapi::query_dataset(
       schools_submitting_dataset_id,
+      dataset_version = schools_dataset_version,
+      preview_token = schools_preview_token,
       geographies = geography_query(
         input$geography_choice,
         input$region_choice,
@@ -125,6 +127,8 @@ server <- function(input, output, session) {
     time_period_query <- time_query()$time_period_query
     result <- eesyapi::query_dataset(
       schools_submitting_dataset_id,
+      dataset_version = schools_dataset_version,
+      preview_token = schools_preview_token,
       time_periods = time_period_query,
       geographies = "National",
       filter_items = list(
@@ -158,6 +162,8 @@ server <- function(input, output, session) {
     message("This is the query: ", query)
     result <- eesyapi::query_dataset(
       schools_submitting_dataset_id,
+      dataset_version = schools_dataset_version,
+      preview_token = schools_preview_token,
       time_periods = time_period_query,
       geographies = query,
       filter_items = list(
@@ -199,6 +205,8 @@ server <- function(input, output, session) {
     eesyapi::query_dataset(
       schools_submitting_dataset_id,
       time_periods = time_period_query,
+      dataset_version = schools_dataset_version,
+      preview_token = schools_preview_token,
       geographies = query,
       filter_items = list(
         time_frame = schools_submitting_sqids$filters$time_frame$monday,
@@ -218,17 +226,41 @@ server <- function(input, output, session) {
   #     dplyr::slice(1)
   # })
 
+  # reasons_data_version_info <- eventReactive(input$geography_choice, {
+  #   eesyapi::get_dataset_versions(
+  #     reasons_dataset_id,
+  #     preview_token = reasons_preview_token,
+  #     ees_environment = ees_api_env
+  #   ) |>
+  #     dplyr::mutate(
+  #       major = as.integer(sub("\\..*$", "", version)),
+  #       minor = as.integer(sub("^.*\\.", "", version))
+  #     ) |>
+  #     dplyr::arrange(desc(major), desc(minor)) |>
+  #     dplyr::slice(1)
+  # })
+
   reasons_data_version_info <- eventReactive(input$geography_choice, {
-    eesyapi::get_dataset_versions(
+    versions <- eesyapi::get_dataset_versions(
       reasons_dataset_id,
+      preview_token = reasons_preview_token,
       ees_environment = ees_api_env
-    ) |>
-      dplyr::mutate(
-        major = as.integer(sub("\\..*$", "", version)),
-        minor = as.integer(sub("^.*\\.", "", version))
-      ) |>
-      dplyr::arrange(desc(major), desc(minor)) |>
-      dplyr::slice(1)
+    )
+
+    if (!is.null(reasons_dataset_version)) {
+      versions |>
+        dplyr::filter(
+          as.character(version) == reasons_dataset_version
+        ) |>
+        dplyr::slice(1)
+    } else {
+      versions |>
+        dplyr::mutate(
+          version_order = numeric_version(as.character(version))
+        ) |>
+        dplyr::arrange(dplyr::desc(version_order)) |>
+        dplyr::slice(1)
+    }
   })
 
   school_phase_key <- reactive({
@@ -244,6 +276,8 @@ server <- function(input, output, session) {
   reasons_data <- reactive({
     reasons <- eesyapi::query_dataset(
       reasons_dataset_id,
+      dataset_version = reasons_dataset_version,
+      preview_token = reasons_preview_token,
       time_periods = time_query()$time_period_query,
       geographies = geography_query(
         input$geography_choice,
@@ -292,12 +326,45 @@ server <- function(input, output, session) {
       input$school_choice
     )
 
+  # la_data <- reactive({
+  #   time_period_query <- reasons_data_version_info()$time_period_end |>
+  #     stringr::str_replace("Week ", "W") |>
+  #     stringr::str_replace(" ", "|")
+  #   eesyapi::query_dataset(
+  #     reasons_dataset_id,
+  #     preview_token = reasons_preview_token,
+  #     time_periods = time_period_query,
+  #     geographies = "Local authority",
+  #     filter_items = list(
+  #       time_frame = reasons_sqids$filters$time_frame$week,
+  #       school_phase = reasons_sqids$filters$education_phase |>
+  #         magrittr::extract2(school_phase_key()),
+  #       attendance_reason = c(
+  #         reasons_sqids$filters$attendance_reason$overallabsence,
+  #         reasons_sqids$filters$attendance_reason$allauthorised,
+  #         reasons_sqids$filters$attendance_reason$allunauthorised
+  #       )
+  #     ),
+  #     indicators = c(
+  #       reasons_sqids$indicators$session_percent,
+  #       reasons_sqids$indicators$reference_date
+  #     ),
+  #     ees_environment = ees_api_env,
+  #     verbose = api_verbose
+  #   )
+  # }) |>
+  #   shiny::bindCache(
+  #     reasons_data_version_info()$version,
+  #     input$school_choice
+  #   )
+
   la_data <- reactive({
-    time_period_query <- reasons_data_version_info()$time_period_end |>
-      stringr::str_replace("Week ", "W") |>
-      stringr::str_replace(" ", "|")
+    time_period_query <- latest_time_period()
+
     eesyapi::query_dataset(
       reasons_dataset_id,
+      dataset_version = reasons_dataset_version,
+      preview_token = reasons_preview_token,
       time_periods = time_period_query,
       geographies = "Local authority",
       filter_items = list(
@@ -319,6 +386,7 @@ server <- function(input, output, session) {
     )
   }) |>
     shiny::bindCache(
+      reasons_dataset_version,
       reasons_data_version_info()$version,
       input$school_choice
     )
@@ -597,7 +665,12 @@ server <- function(input, output, session) {
       return("Year to date - no data available")
     }
 
-    start_date <- as.Date("2025-09-08")
+    start_date <- if (dates >= as.Date("2026-09-01")) {
+      as.Date("2026-09-07")
+    } else {
+      as.Date("2025-09-08")
+    }
+
     end_date <- dates + 4
 
     paste0(

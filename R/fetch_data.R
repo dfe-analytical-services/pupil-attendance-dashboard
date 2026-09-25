@@ -2,18 +2,23 @@
 fetch_sqid_lookup <- function(
   dataset_id,
   version = NULL,
+  preview_token = NULL,
   ees_environment = "test",
   verbose = FALSE
 ) {
   meta <- eesyapi::get_meta(
     dataset_id,
+    dataset_version = version,
+    preview_token = preview_token,
     ees_environment = ees_environment,
     verbose = verbose
   )
+
   sqid_lookup <- list(
     filters = filter_item_sqid_list(meta$filter_items),
     indicators = indicator_sqid_list(meta$indicators)
   )
+
   return(sqid_lookup)
 }
 
