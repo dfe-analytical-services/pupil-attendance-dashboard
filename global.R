@@ -71,6 +71,54 @@ appLoadingCSS <- "
 
 ees_api_env <- "prod"
 
+# Optional preview-token configuration.
+# If the environment variables exist, preview data is used.
+# If they do not exist, published data is used.
+
+read_optional_secret <- function(name) {
+  value <- trimws(Sys.getenv(name, unset = ""))
+
+  if (nzchar(value)) {
+    value
+  } else {
+    NULL
+  }
+}
+
+reasons_preview_token <- read_optional_secret(
+  "REASONS_PREVIEW_TOKEN"
+)
+
+schools_preview_token <- read_optional_secret(
+  "SCHOOLS_PREVIEW_TOKEN"
+)
+
+# schools_dataset_version <- if (!is.null(schools_preview_token)) {
+#   "3.0"
+# } else {
+#   NULL
+# }
+#
+# reasons_dataset_version <- if (!is.null(reasons_preview_token)) {
+#   "4.0"
+# } else {
+#   NULL
+# }
+
+preview_mode <- !is.null(reasons_preview_token) ||
+  !is.null(schools_preview_token)
+
+message("Preview data configured: ", preview_mode)
+
+message(
+  "Reasons preview token configured: ",
+  !is.null(reasons_preview_token)
+)
+message(
+  "Schools preview token configured: ",
+  !is.null(schools_preview_token)
+)
+
 if (ees_api_env == "prod") {
   api_verbose <- FALSE
   api_environment <- "prod"
@@ -102,6 +150,85 @@ if (ees_api_env == "prod") {
   stop("Invalid environment given in ees_api_env variable.")
 }
 
+# schools_dataset_version <- if (!is.null(schools_preview_token)) {
+#   version <- eesyapi::get_dataset_versions(
+#     schools_submitting_dataset_id,
+#     preview_token = schools_preview_token,
+#     ees_environment = ees_api_env
+#   ) |>
+#     dplyr::filter(is.na(release_date)) |>
+#     dplyr::slice(1) |>
+#     dplyr::pull(version)
+#
+#   message("Schools pre-release dataset version found: ", version)
+#
+#   as.character(version)
+# } else {
+#   NULL
+# }
+#
+# reasons_dataset_version <- if (!is.null(reasons_preview_token)) {
+#   version <- eesyapi::get_dataset_versions(
+#     reasons_dataset_id,
+#     preview_token = reasons_preview_token,
+#     ees_environment = ees_api_env
+#   ) |>
+#     dplyr::filter(is.na(release_date)) |>
+#     dplyr::slice(1) |>
+#     dplyr::pull(version)
+#
+#   message("Reasons pre-release dataset version found: ", version)
+#
+#   as.character(version)
+# } else {
+#   NULL
+# }
+
+get_active_dataset_version <- function(dataset_id, preview_token = NULL) {
+  versions <- eesyapi::get_dataset_versions(
+    dataset_id,
+    preview_token = preview_token,
+    ees_environment = ees_api_env
+  )
+
+  if (!is.null(preview_token)) {
+    version <- versions |>
+      dplyr::filter(is.na(release_date)) |>
+      dplyr::slice(1) |>
+      dplyr::pull(version)
+  } else {
+    version <- versions |>
+      dplyr::filter(!is.na(release_date)) |>
+      dplyr::slice(1) |>
+      dplyr::pull(version)
+  }
+
+  as.character(version)
+}
+
+schools_dataset_version <- get_active_dataset_version(
+  schools_submitting_dataset_id,
+  schools_preview_token
+)
+
+reasons_dataset_version <- get_active_dataset_version(
+  reasons_dataset_id,
+  reasons_preview_token
+)
+
+message(
+  "Schools dataset version selected: ",
+  schools_dataset_version,
+  if (is.null(schools_preview_token)) " (published)" else " (pre-release)"
+)
+
+message(
+  "Reasons dataset version selected: ",
+  reasons_dataset_version,
+  if (is.null(reasons_preview_token)) " (published)" else " (pre-release)"
+)
+
+
 message("Sourcing prerun utils")
 source("R/prerun_utils.R")
 message("Sourcing fetch data")
@@ -131,10 +258,41 @@ region_la_lookup <- dfeR::wd_pcon_lad_la_rgn_ctry |>
 # parameters for the API calls. This is a bit that could cause some issues if there's some breaking
 # changes to the data set. As long as there's no breaking changes, then the version number used
 # here should not be changed.
+# message("Pulling in SQID lookups from API")
+# reasons_sqids <- fetch_sqid_lookup(
+#   reasons_dataset_id,
+#   version = if (!is.null(reasons_preview_token)) {
+#     reasons_dataset_version
+#   } else {
+#     reasons_dataset_ref_version
+#   },
+#   preview_token = reasons_preview_token,
+#   ees_environment = ees_api_env
+# )
+#
+# persistent_absence_sqids <- fetch_sqid_lookup(
+#   persistent_absence_dataset_id,
+#   version = persistent_absence_ref_version,
+#   ees_environment = ees_api_env
+# )
+#
+# schools_submitting_sqids <- fetch_sqid_lookup(
+#   schools_submitting_dataset_id,
+#   version = if (!is.null(schools_preview_token)) {
+#     schools_dataset_version
+#   } else {
+#     schools_submitting_ref_version
+#   },
+#   preview_token = schools_preview_token,
+#   ees_environment = ees_api_env
+# )
+
 message("Pulling in SQID lookups from API")
+
 reasons_sqids <- fetch_sqid_lookup(
   reasons_dataset_id,
-  version = reasons_dataset_ref_version,
+  version = reasons_dataset_version,
+  preview_token = reasons_preview_token,
   ees_environment = ees_api_env
 )
 
@@ -146,7 +304,8 @@ persistent_absence_sqids <- fetch_sqid_lookup(
 
 schools_submitting_sqids <- fetch_sqid_lookup(
   schools_submitting_dataset_id,
-  version = schools_submitting_ref_version,
+  version = schools_dataset_version,
+  preview_token = schools_preview_token,
   ees_environment = ees_api_env
 )
 
