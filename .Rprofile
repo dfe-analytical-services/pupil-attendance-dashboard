@@ -13,9 +13,64 @@ cat("Sourcing .Rprofile.", fill = TRUE)
 print(Sys.info())
 source("renv/activate.R")
 
+# Auto-detect Chrome path for chromote
+detect_chrome_path <- function() {
+  possible_paths <- c(
+    "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+    file.path(
+      Sys.getenv("LOCALAPPDATA"),
+      "Google/Chrome/Application/chrome.exe"
+    )
+  )
+
+  for (path in possible_paths) {
+    if (file.exists(path)) {
+      options(chromote.chrome = path)
+      message("✅ Chrome path set to: ", path)
+      return(invisible(path))
+    }
+  }
+
+  stop("❌ Chrome not found in common locations.")
+}
+
+# Get current username
+current_user <- Sys.getenv("USERNAME")
+
+# Define list of local users
+local_users <- c("FALI7", "CHALL3", "JMORRIS6")
+
+# Conditional logic based on user membership
+if (current_user %in% local_users) {
+  message("Local user detected")
+  detect_chrome_path()
+
+  # Define run_tests_locally using manual ChromoteSession
+  run_tests_locally <- function() {
+    message("Running tests locally with manual ChromoteSession")
+    cs <- chromote::ChromoteSession$new()
+    shinytest2::test_app(chromote_session = cs)
+  }
+} else {
+  # Define run_tests_locally for CI/CD (headless shell)
+  run_tests_locally <- function() {
+    message("Running tests with headless shell")
+    chromote::local_chrome_version(
+      binary = "chrome-headless-shell",
+      quiet = FALSE
+    )
+    shinytest2::test_app()
+  }
+}
+
 # Install commit-hooks locally
 if (file.exists(".git")) {
-  statusWriteCommit <- file.copy(".hooks/pre-commit.R", ".git/hooks/pre-commit", overwrite = TRUE)
+  statusWriteCommit <- file.copy(
+    ".hooks/pre-commit.R",
+    ".git/hooks/pre-commit",
+    overwrite = TRUE
+  )
 }
 
 message("End of .Rprofile")
