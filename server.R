@@ -2305,7 +2305,19 @@ server <- function(input, output, session) {
       ))
     })
 
-    leaflet(dat) |>
+    leaflet(
+      dat,
+      options = leafletOptions(
+        minZoom = 4,
+        maxBoundsViscosity = 1.0
+      )
+    ) |>
+      fitBounds(
+        lng1 = -6.8,
+        lat1 = 49.99,
+        lng2 = 1.95,
+        lat2 = 55.5
+      ) |>
       addTiles(
         urlTemplate = paste0(
           "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=",
