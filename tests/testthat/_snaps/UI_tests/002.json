@@ -9,10 +9,10 @@
     "measure_choice": "Overall",
     "navlistPanel": "dashboard",
     "region_choice": "East Midlands",
-    "school_choice": "Primary",
+    "school_choice": "Total",
     "ts_choice": "latestweeks"
   },
   "output": {
-    "school_count_proportion": "For this breakdown, in the latest week 99.32% of schools submitted data, though this has varied throughout the year-to-date."
+    "school_count_proportion": "For this breakdown, in the latest week 98.73% of schools submitted data, though this has varied throughout the year-to-date."
   }
 }
