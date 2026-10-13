@@ -216,6 +216,9 @@ reasons_dataset_version <- get_active_dataset_version(
   reasons_preview_token
 )
 
+# Fixed end-of-year version for the 2025/26 academic year
+reasons_dataset_version_202526 <- "3.20"
+
 message(
   "Schools dataset version selected: ",
   schools_dataset_version,

@@ -6214,7 +6214,7 @@
       "checksum": "940dff53b51d664e52e90e4349a97eaa"
     },
     ".Rprofile": {
-      "checksum": "abd0f87739d6a978562809844845df04"
+      "checksum": "313be5cc58936360e6ed5f90f635c934"
     },
     "azure-pipelines.yml": {
       "checksum": "161e6e3c4a8af841144c1f338c7049d8"
@@ -6271,7 +6271,7 @@
       "checksum": "12ec8a8981de38a0c0e149b9e67ae51c"
     },
     "global.R": {
-      "checksum": "3bd2212982dc764eb9287015ace61c60"
+      "checksum": "7a207ec08f91cf41584d2c90df41aeb9"
     },
     "google-analytics.html": {
       "checksum": "c6848bc54d17ba53262714266256e5c2"
@@ -6286,7 +6286,7 @@
       "checksum": "33bce00050768810c97392bb0bb418da"
     },
     "R/dashboard_panels.R": {
-      "checksum": "c7d66396fa490ca64d8d4ac00e582618"
+      "checksum": "54bc63f53d96f2d0fd7b80888c676e51"
     },
     "R/fetch_data.R": {
       "checksum": "53f26c570f79a935ea0a6cf8582dd91a"
@@ -6340,37 +6340,37 @@
       "checksum": "12e9b09de5275bdc13bde6ae5a82f8b1"
     },
     "tests/testthat/_snaps/UI_tests/001.json": {
-      "checksum": "e88842512846ec87ceb84cbe5db18273"
+      "checksum": "798e1bd4ebbab03d66829aae55c2f9ee"
     },
     "tests/testthat/_snaps/UI_tests/001_.png": {
       "checksum": "766b231fab2b8e649559ca306c667418"
     },
     "tests/testthat/_snaps/UI_tests/002.json": {
-      "checksum": "10244b3d4a573f44fdabe7d0b51e8b53"
+      "checksum": "289290e3d9b59398b2b5efc89e5e86d7"
     },
     "tests/testthat/_snaps/UI_tests/002_.png": {
       "checksum": "f49490f2f3bf346e54ff61376312efd9"
     },
     "tests/testthat/_snaps/UI_tests/003.json": {
-      "checksum": "4c657bf5a1b652babe94218febcec4cd"
+      "checksum": "4684c3c20bd97c6400f1df50d63146aa"
     },
     "tests/testthat/_snaps/UI_tests/003_.png": {
       "checksum": "d2c1b37b9fce290bf33dd782a593f11e"
     },
     "tests/testthat/_snaps/UI_tests/004.json": {
-      "checksum": "e7555f68f8dcd0d0b881baa86d7bd5b9"
+      "checksum": "80c0d84118d21c804f60de2c323e67d8"
     },
     "tests/testthat/_snaps/UI_tests/004_.png": {
       "checksum": "763fc8951411a40b2d0723eddf6dbdec"
     },
     "tests/testthat/_snaps/UI_tests/005.json": {
-      "checksum": "4c57414703ffed5ef3c33048a843fb5c"
+      "checksum": "c4facb5ca8357776f4f5b5a709751f37"
     },
     "tests/testthat/_snaps/UI_tests/005_.png": {
       "checksum": "e63751a0011fe423aeb710c1e9ac0212"
     },
     "tests/testthat/_snaps/UI_tests/006.json": {
-      "checksum": "a60b1b56ecd9607a57248932f56a6938"
+      "checksum": "33309c2a88d53d7f9c61e3d3ec851599"
     },
     "tests/testthat/_snaps/UI_tests/006_.png": {
       "checksum": "f1b4a6e3b0fb043cafbabf46268d0043"

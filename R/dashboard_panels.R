@@ -1,3 +1,4 @@
+# This is the dashboard panel section
 # homepage panel
 
 homepage_panel <- function() {
