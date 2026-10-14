@@ -6214,13 +6214,13 @@
       "checksum": "940dff53b51d664e52e90e4349a97eaa"
     },
     ".Rprofile": {
-      "checksum": "1d1afd96eab689695697eeb96ebf8850"
+      "checksum": "7879d4dbd0f7824eb7749c3e6e29603c"
     },
     "attendance-dashboard-private.yml": {
       "checksum": "67aa148c3a54dc82af6d93ee8584f0d0"
     },
     "azure-pipelines.yml": {
-      "checksum": "161e6e3c4a8af841144c1f338c7049d8"
+      "checksum": "c95d3c4a76745ea49c4b16f0de21e55f"
     },
     "CODE_OF_CONDUCT.md": {
       "checksum": "7dcf9b0b5bac78fc7d7fe45f8c5102b1"
@@ -6289,7 +6289,7 @@
       "checksum": "33bce00050768810c97392bb0bb418da"
     },
     "R/dashboard_panels.R": {
-      "checksum": "c7d66396fa490ca64d8d4ac00e582618"
+      "checksum": "4a954ed1069b425e4d091b3ae292d313"
     },
     "R/fetch_data.R": {
       "checksum": "53f26c570f79a935ea0a6cf8582dd91a"
@@ -6302,6 +6302,9 @@
     },
     "R/line_formatters.R": {
       "checksum": "a6f6eeece707c39c7483e0ab05746572"
+    },
+    "R/new_buttons.R": {
+      "checksum": "72f05caeeb594cbb2ccc353c5a282ea1"
     },
     "R/plotting.R": {
       "checksum": "8536baebc83f24153f99846975cd3a83"

@@ -372,6 +372,10 @@ dashboard_panel <- function() {
                   width = 12,
                   tags$br(),
                   tags$h5("Underlying data for the chart"),
+                  govReactableDownloadButton(
+                    table_id = "reasons_chart_table",
+                    filename = "reasons-chart-table.csv"
+                  ),
                   tags$div(
                     style = "
                       width: 100%;
@@ -438,6 +442,10 @@ dashboard_panel <- function() {
                   leafletOutput("rates_map"),
                   br(),
                   h4(textOutput("la_comparison_title")),
+                  govReactableDownloadButton(
+                    table_id = "absence_reasons_la_reactable",
+                    filename = "local-authority-absence-rates.csv"
+                  ),
                   govReactableOutput(
                     "absence_reasons_la_reactable",
                     caption = "Reasons for absences"
