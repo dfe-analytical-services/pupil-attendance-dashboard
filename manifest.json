@@ -6214,13 +6214,13 @@
       "checksum": "940dff53b51d664e52e90e4349a97eaa"
     },
     ".Rprofile": {
-      "checksum": "1d1afd96eab689695697eeb96ebf8850"
+      "checksum": "e5a515901fecb542247e6828d6cdc1ac"
     },
     "attendance-dashboard-private.yml": {
-      "checksum": "67aa148c3a54dc82af6d93ee8584f0d0"
+      "checksum": "f5e1431916b396f4071091b7aa14e5e7"
     },
     "azure-pipelines.yml": {
-      "checksum": "161e6e3c4a8af841144c1f338c7049d8"
+      "checksum": "c95d3c4a76745ea49c4b16f0de21e55f"
     },
     "CODE_OF_CONDUCT.md": {
       "checksum": "7dcf9b0b5bac78fc7d7fe45f8c5102b1"
@@ -6274,7 +6274,7 @@
       "checksum": "12ec8a8981de38a0c0e149b9e67ae51c"
     },
     "global.R": {
-      "checksum": "3bd2212982dc764eb9287015ace61c60"
+      "checksum": "c659a3e29bcb37aa7332f0b7f8d0737b"
     },
     "google-analytics.html": {
       "checksum": "c6848bc54d17ba53262714266256e5c2"
@@ -6337,7 +6337,7 @@
       "checksum": "088c760f9591a3ce66f3a3aa320ceae1"
     },
     "server.R": {
-      "checksum": "606657f7b6adfd5cceb65ff79e6f7817"
+      "checksum": "52f5ac19ca16fed36756450d1ce76f4b"
     },
     "tests/testthat.R": {
       "checksum": "12e9b09de5275bdc13bde6ae5a82f8b1"
@@ -6379,7 +6379,7 @@
       "checksum": "f1b4a6e3b0fb043cafbabf46268d0043"
     },
     "tests/testthat/_snaps/UI_tests/007.json": {
-      "checksum": "4a9dec9608ae256a8cb7dc830733fcd4"
+      "checksum": "6d47c03410289e95407eb7157d5e3f8e"
     },
     "tests/testthat/_snaps/UI_tests/007_.png": {
       "checksum": "4c2e402ede683f106a241dc5737a3899"

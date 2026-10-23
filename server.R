@@ -19,8 +19,79 @@
 # ---------------------------------------------------------
 
 server <- function(input, output, session) {
+  # ---------------------------------------------------------------------------
+  # Academic year / API version selection
+  # ---------------------------------------------------------------------------
+
+  # The existing time-period dropdown will contain both the academic year
+  # and the required type of period.
+  #
+  # Expected values:
+  #   "2026/27|latestweeks"
+  #   "2026/27|yeartodate"
+  #   "2025/26|latestweeks"
+  #   "2025/26|yeartodate"
+
+  selected_period_value <- reactive({
+    value <- selected_time_frame()
+
+    if (
+      is.null(value) ||
+        !nzchar(value) ||
+        !grepl("\\|", value)
+    ) {
+      return("2026/27|latestweeks")
+    }
+
+    value
+  })
+
+  selected_academic_year <- reactive({
+    stringr::str_split_fixed(
+      selected_period_value(),
+      "\\|",
+      2
+    )[, 1]
+  })
+
+  selected_time_frame <- reactive({
+    stringr::str_split_fixed(
+      selected_period_value(),
+      "\\|",
+      2
+    )[, 2]
+  })
+
+  # Configuration selected for this user's session.
+  selected_api_config <- reactive({
+    academic_year_api_config[[selected_academic_year()]]
+  })
+
+  selected_reasons_version <- reactive({
+    selected_api_config()$reasons_version
+  })
+
+  selected_schools_version <- reactive({
+    selected_api_config()$schools_version
+  })
+
+  selected_reasons_preview_token <- reactive({
+    selected_api_config()$reasons_preview_token
+  })
+
+  selected_schools_preview_token <- reactive({
+    selected_api_config()$schools_preview_token
+  })
+
+  selected_reasons_sqids <- reactive({
+    reasons_sqids_by_academic_year[[selected_academic_year()]]
+  })
+
+  selected_schools_sqids <- reactive({
+    schools_submitting_sqids_by_academic_year[[selected_academic_year()]]
+  })
+
   # Loading screen ---------------------------------------------------------------------------
-  # Call initial loading screen
 
   hide(id = "loading-content", anim = TRUE, animType = "fade")
   show("app-content")
@@ -40,13 +111,19 @@ server <- function(input, output, session) {
   )
   # ==============================================================================================
 
-  time_frame_descriptors <- reactive(
-    if (input$ts_choice == "latestweeks") {
-      list(filter_string = "Week", display_string = "Latest week")
+  time_frame_descriptors <- reactive({
+    if (selected_time_frame() == "latestweeks") {
+      list(
+        filter_string = "Week",
+        display_string = "Latest week"
+      )
     } else {
-      list(filter_string = "Year to date", display_string = "Year to date")
+      list(
+        filter_string = "Year to date",
+        display_string = "Year to date"
+      )
     }
-  )
+  })
 
   rank_data_multi <- function(df) {
     df |>
@@ -58,18 +135,20 @@ server <- function(input, output, session) {
   }
 
   latest_time_period <- reactive({
+    schools_sqids <- selected_schools_sqids()
+
     eesyapi::query_dataset(
       schools_submitting_dataset_id,
-      dataset_version = schools_dataset_version,
-      preview_token = schools_preview_token,
+      dataset_version = selected_schools_version(),
+      preview_token = selected_schools_preview_token(),
       geographies = geography_query(
         input$geography_choice,
         input$region_choice,
         input$la_choice
       ),
       filter_items = list(
-        time_frame = schools_submitting_sqids$filters$time_frame$friday,
-        school_phase = schools_submitting_sqids$filters$education_phase$allschools
+        time_frame = schools_sqids$filters$time_frame$friday,
+        school_phase = schools_sqids$filters$education_phase$allschools
       ),
       ees_environment = ees_api_env
     ) |>
@@ -89,17 +168,22 @@ server <- function(input, output, session) {
       pull(query)
   }) |>
     shiny::bindCache(
-      reasons_data_version_info()$version,
+      selected_academic_year(),
+      selected_schools_version(),
       input$geography_choice,
       input$region_choice,
       input$la_choice
     )
 
   time_query <- reactive({
-    message("Time period choice: ", input$ts_choice)
-    if (input$ts_choice == "latestweeks") {
+    reasons_sqids <- selected_reasons_sqids()
+
+    message("Time period choice: ", selected_time_frame())
+    message("Academic year: ", selected_academic_year())
+
+    if (selected_time_frame() == "latestweeks") {
       time_period_query <- latest_time_period()
-      message(time_period_query, latest_time_period())
+
       time_frame_query <- c(
         reasons_sqids$filters$time_frame$week,
         reasons_sqids$filters$time_frame$monday,
@@ -110,75 +194,94 @@ server <- function(input, output, session) {
       )
     } else {
       time_period_query <- NULL
+
       time_frame_query <- c(
         reasons_sqids$filters$time_frame$yeartodate,
         reasons_sqids$filters$time_frame$week
       )
     }
+
     message(paste(time_period_query, collapse = ", "))
-    return(list(
+
+    list(
       time_period_query = time_period_query,
       time_frame_query = time_frame_query
-    ))
+    )
   })
 
   # Retrieving data from the API
   latest_schools_count <- reactive({
+    schools_sqids <- selected_schools_sqids()
+
     time_period_query <- time_query()$time_period_query
+
     result <- eesyapi::query_dataset(
       schools_submitting_dataset_id,
-      dataset_version = schools_dataset_version,
-      preview_token = schools_preview_token,
+      dataset_version = selected_schools_version(),
+      preview_token = selected_schools_preview_token(),
       time_periods = time_period_query,
       geographies = "National",
       filter_items = list(
-        time_frame = schools_submitting_sqids$filters$time_frame$friday,
-        school_phase = schools_submitting_sqids$filters$education_phase$allschools
+        time_frame = schools_sqids$filters$time_frame$friday,
+        school_phase = schools_sqids$filters$education_phase$allschools
       ),
       ees_environment = ees_api_env
     )
+
     print(result)
-    return(result)
+
+    result
   }) |>
     shiny::bindCache(
-      reasons_data_version_info()$version
+      selected_academic_year(),
+      selected_schools_version()
     )
 
   school_numbers_data <- reactive({
+    schools_sqids <- selected_schools_sqids()
+
     time_period_query <- time_query()$time_period_query
+
     if (input$geography_choice == "National") {
       query <- "National"
     } else if (input$geography_choice == "Regional") {
       reg_code <- dfeR::fetch_regions() |>
         dplyr::filter(region_name == input$region_choice) |>
         dplyr::pull(region_code)
+
       query <- paste0("REG|code|", reg_code)
     } else if (input$geography_choice == "Local authority") {
       la_code <- dfeR::fetch_las() |>
         dplyr::filter(la_name == input$la_choice) |>
         dplyr::pull(new_la_code)
+
       query <- paste0("LA|code|", la_code)
     }
+
     message("This is the query: ", query)
+
     result <- eesyapi::query_dataset(
       schools_submitting_dataset_id,
-      dataset_version = schools_dataset_version,
-      preview_token = schools_preview_token,
+      dataset_version = selected_schools_version(),
+      preview_token = selected_schools_preview_token(),
       time_periods = time_period_query,
       geographies = query,
       filter_items = list(
-        time_frame = schools_submitting_sqids$filters$time_frame$week,
-        school_phase = schools_submitting_sqids$filters$education_phase |>
+        time_frame = schools_sqids$filters$time_frame$week,
+        school_phase = schools_sqids$filters$education_phase |>
           magrittr::extract2(school_phase_key())
       ),
       ees_environment = ees_api_env
     )
+
     print(result)
-    return(result)
+
+    result
   }) |>
     shiny::bindCache(
-      reasons_data_version_info()$version,
-      input$ts_choice,
+      selected_academic_year(),
+      selected_schools_version(),
+      selected_time_frame(),
       input$geography_choice,
       input$region_choice,
       input$la_choice,
@@ -186,6 +289,8 @@ server <- function(input, output, session) {
     )
 
   latest_week_data <- reactive({
+    schools_sqids <- selected_schools_sqids()
+
     time_period_query <- time_query()$time_period_query
 
     if (input$geography_choice == "National") {
@@ -194,23 +299,25 @@ server <- function(input, output, session) {
       reg_code <- dfeR::fetch_regions() |>
         dplyr::filter(region_name == input$region_choice) |>
         dplyr::pull(region_code)
+
       query <- paste0("REG|code|", reg_code)
     } else if (input$geography_choice == "Local authority") {
       la_code <- dfeR::fetch_las() |>
         dplyr::filter(la_name == input$la_choice) |>
         dplyr::pull(new_la_code)
+
       query <- paste0("LA|code|", la_code)
     }
 
     eesyapi::query_dataset(
       schools_submitting_dataset_id,
       time_periods = time_period_query,
-      dataset_version = schools_dataset_version,
-      preview_token = schools_preview_token,
+      dataset_version = selected_schools_version(),
+      preview_token = selected_schools_preview_token(),
       geographies = query,
       filter_items = list(
-        time_frame = schools_submitting_sqids$filters$time_frame$monday,
-        school_phase = schools_submitting_sqids$filters$education_phase |>
+        time_frame = schools_sqids$filters$time_frame$monday,
+        school_phase = schools_sqids$filters$education_phase |>
           magrittr::extract2(school_phase_key())
       ),
       ees_environment = ees_api_env
@@ -240,27 +347,18 @@ server <- function(input, output, session) {
   #     dplyr::slice(1)
   # })
 
-  reasons_data_version_info <- eventReactive(input$geography_choice, {
+  reasons_data_version_info <- reactive({
     versions <- eesyapi::get_dataset_versions(
       reasons_dataset_id,
-      preview_token = reasons_preview_token,
+      preview_token = selected_reasons_preview_token(),
       ees_environment = ees_api_env
     )
 
-    if (!is.null(reasons_dataset_version)) {
-      versions |>
-        dplyr::filter(
-          as.character(version) == reasons_dataset_version
-        ) |>
-        dplyr::slice(1)
-    } else {
-      versions |>
-        dplyr::mutate(
-          version_order = numeric_version(as.character(version))
-        ) |>
-        dplyr::arrange(dplyr::desc(version_order)) |>
-        dplyr::slice(1)
-    }
+    versions |>
+      dplyr::filter(
+        as.character(version) == selected_reasons_version()
+      ) |>
+      dplyr::slice(1)
   })
 
   school_phase_key <- reactive({
@@ -274,10 +372,12 @@ server <- function(input, output, session) {
   })
 
   reasons_data <- reactive({
+    reasons_sqids <- selected_reasons_sqids()
+
     reasons <- eesyapi::query_dataset(
       reasons_dataset_id,
-      dataset_version = reasons_dataset_version,
-      preview_token = reasons_preview_token,
+      dataset_version = selected_reasons_version(),
+      preview_token = selected_reasons_preview_token(),
       time_periods = time_query()$time_period_query,
       geographies = geography_query(
         input$geography_choice,
@@ -307,25 +407,30 @@ server <- function(input, output, session) {
           reasons_sqids$filters$attendance_reason$noreasonyet_n
         )
       ),
-      indicators = unlist(reasons_sqids$indicators, use.names = FALSE),
+      indicators = unlist(
+        reasons_sqids$indicators,
+        use.names = FALSE
+      ),
       ees_environment = ees_api_env,
       verbose = api_verbose
     ) |>
       mutate(
         reference_date = lubridate::ymd(reference_date)
       )
+
     print(reasons)
+
     reasons
   }) |>
     shiny::bindCache(
-      reasons_data_version_info()$version,
-      input$ts_choice,
+      selected_academic_year(),
+      selected_reasons_version(),
+      selected_time_frame(),
       input$geography_choice,
       input$region_choice,
       input$la_choice,
       input$school_choice
     )
-
   # la_data <- reactive({
   #   time_period_query <- reasons_data_version_info()$time_period_end |>
   #     stringr::str_replace("Week ", "W") |>
@@ -359,12 +464,14 @@ server <- function(input, output, session) {
   #   )
 
   la_data <- reactive({
+    reasons_sqids <- selected_reasons_sqids()
+
     time_period_query <- latest_time_period()
 
     eesyapi::query_dataset(
       reasons_dataset_id,
-      dataset_version = reasons_dataset_version,
-      preview_token = reasons_preview_token,
+      dataset_version = selected_reasons_version(),
+      preview_token = selected_reasons_preview_token(),
       time_periods = time_period_query,
       geographies = "Local authority",
       filter_items = list(
@@ -386,25 +493,47 @@ server <- function(input, output, session) {
     )
   }) |>
     shiny::bindCache(
-      reasons_dataset_version,
-      reasons_data_version_info()$version,
+      selected_academic_year(),
+      selected_reasons_version(),
       input$school_choice
     )
+  # ---------------------------------------------------------------------------
+  # Persistent absence
+  # ---------------------------------------------------------------------------
+  # Persistent absence is not available for 2026/27.
+  # These reactives must therefore never call the persistent absence API
+  # while the current academic year is selected.
 
-  pa_data_version_info <- eventReactive(input$geography_choice, {
+  pa_data_version_info <- reactive({
+    req(selected_academic_year() == "2025/26")
+
     eesyapi::get_dataset_versions(
       persistent_absence_dataset_id,
       ees_environment = ees_api_env
     ) |>
-      filter(version == max(version))
+      dplyr::mutate(
+        version_order = numeric_version(as.character(version))
+      ) |>
+      dplyr::arrange(dplyr::desc(version_order)) |>
+      dplyr::slice(1)
   })
 
   pa_data <- reactive({
+    req(selected_academic_year() == "2025/26")
+
+    persistent_absence_sqids <- fetch_sqid_lookup(
+      persistent_absence_dataset_id,
+      version = as.character(pa_data_version_info()$version),
+      ees_environment = ees_api_env
+    )
+
     time_period_query <- pa_data_version_info()$time_period_end |>
       stringr::str_replace("Week ", "W") |>
       stringr::str_replace(" ", "|")
+
     eesyapi::query_dataset(
       persistent_absence_dataset_id,
+      dataset_version = as.character(pa_data_version_info()$version),
       time_periods = time_period_query,
       geographies = geography_query(
         input$geography_choice,
@@ -424,14 +553,12 @@ server <- function(input, output, session) {
     )
   }) |>
     shiny::bindCache(
-      reasons_data_version_info()$version,
-      input$ts_choice,
+      selected_academic_year(),
       input$geography_choice,
       input$region_choice,
       input$la_choice,
       input$school_choice
     )
-
   map_data <- reactive({
     merged <- merge(
       mapshape |> dplyr::rename(la_code = CTYUA23CD),
@@ -470,7 +597,7 @@ server <- function(input, output, session) {
   # Base time frame string to show the latest week dates or year to date range coverage.
   # This is derived direcrtly from the data as downloaded bia the API.
   time_frame_string <- reactive({
-    if (input$ts_choice == "latestweeks") {
+    if (selected_time_frame() == "latestweeks") {
       dates <- reasons_data() |>
         filter(time_frame != "Week") |>
         pull(reference_date)
@@ -682,7 +809,7 @@ server <- function(input, output, session) {
   })
 
   reactive_period_selected <- reactive({
-    if (input$ts_choice == "latestweeks") {
+    if (selected_time_frame() == "latestweeks") {
       period <- reactive_latestweeks_string()
     } else {
       period <- reactive_yeartodate_string()
@@ -700,7 +827,7 @@ server <- function(input, output, session) {
       session,
       "ts_choice",
       choices = newchoices,
-      selected = input$ts_choice
+      selected = selected_time_frame()
     )
   })
 
@@ -873,7 +1000,7 @@ server <- function(input, output, session) {
   #     ggobj = headline_absence_ggplot(
   #       reasons_data() |>
   #         filter(geographic_level == input$geography_choice),
-  #       input$ts_choice
+  #       selected_time_frame()
   #     ),
   #     width_svg = 10,
   #     height_svg = 6,
@@ -902,7 +1029,7 @@ server <- function(input, output, session) {
   # })
 
   output$headline_absence_chart <- plotly::renderPlotly({
-    title_text <- if (input$ts_choice == "latestweeks") {
+    title_text <- if (selected_time_frame() == "latestweeks") {
       newtitle_daily()
     } else {
       newtitle_weekly()
@@ -911,7 +1038,7 @@ server <- function(input, output, session) {
     headline_absence_plotly(
       reasons_data() |>
         dplyr::filter(geographic_level == input$geography_choice),
-      input$ts_choice,
+      selected_time_frame(),
       title_text
     )
   })
@@ -941,7 +1068,7 @@ server <- function(input, output, session) {
   })
 
   output$absence_reasons_timeseries <- plotly::renderPlotly({
-    title_text <- if (input$ts_choice == "latestweeks") {
+    title_text <- if (selected_time_frame() == "latestweeks") {
       newtitle_reasonsdaily()
     } else {
       newtitle_reasonsweekly()
@@ -950,7 +1077,7 @@ server <- function(input, output, session) {
     reasons_plotly(
       reasons_data() |>
         dplyr::filter(geographic_level == input$geography_choice),
-      input$ts_choice,
+      selected_time_frame(),
       title_text
     )
   })
@@ -968,7 +1095,7 @@ server <- function(input, output, session) {
       )
 
     # ✅ Same logic as chart
-    if (input$ts_choice == "latestweeks") {
+    if (selected_time_frame() == "latestweeks") {
       df <- df |> dplyr::filter(time_frame != "Week")
     } else {
       df <- df |> dplyr::filter(time_frame == "Week")
@@ -1020,7 +1147,7 @@ server <- function(input, output, session) {
         attendance_reason %in% visible_reasons
       )
 
-    if (input$ts_choice == "latestweeks") {
+    if (selected_time_frame() == "latestweeks") {
       df <- df |>
         dplyr::filter(time_frame != "Week")
     } else {
@@ -1191,9 +1318,9 @@ server <- function(input, output, session) {
       tags$p(
         paste0(
           "Absence rates presented here are calculated on a ",
-          ifelse(input$ts_choice == "latestweeks", "daily", "weekly"),
+          ifelse(selected_time_frame() == "latestweeks", "daily", "weekly"),
           " basis. Each point on the chart shows an absence rate calculated across all sessions in the given ",
-          ifelse(input$ts_choice == "latestweeks", "day", "week"),
+          ifelse(selected_time_frame() == "latestweeks", "day", "week"),
           "."
         )
       )
@@ -1343,13 +1470,13 @@ server <- function(input, output, session) {
 
   output$headline_bullet_attendance_rate <- renderUI({
     time_frame_text <- ifelse(
-      input$ts_choice == "latestweeks",
+      selected_time_frame() == "latestweeks",
       "in the latest week",
       "across the year to date"
     )
 
     time_frame_data_string <- ifelse(
-      input$ts_choice == "latestweeks",
+      selected_time_frame() == "latestweeks",
       "Week",
       "Year to date"
     )
@@ -1427,7 +1554,7 @@ server <- function(input, output, session) {
   })
 
   output$headline_persistent_absence <- renderUI({
-    if (input$ts_choice == "latestweeks") {
+    if (selected_time_frame() == "latestweeks") {
       tagList(
         tags$p(
           "To view persistent absence figures, select \"year to date\" in the drop-down menu.",
@@ -1653,7 +1780,7 @@ server <- function(input, output, session) {
   # Creating reactive boxes ------------------------------------------------------------
 
   output$absence_rates_value_boxes <- renderUI({
-    if (input$ts_choice == "latestweeks") {
+    if (selected_time_frame() == "latestweeks") {
       time_frame_text <- "latest full week"
       time_frame_filter <- "Week"
     } else {

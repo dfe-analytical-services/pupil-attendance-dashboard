@@ -206,6 +206,10 @@ get_active_dataset_version <- function(dataset_id, preview_token = NULL) {
   as.character(version)
 }
 
+# Get the active versions for the current academic year.
+# These may be pre-release versions when valid preview tokens are configured,
+# otherwise they are the latest published versions.
+
 schools_dataset_version <- get_active_dataset_version(
   schools_submitting_dataset_id,
   schools_preview_token
@@ -217,20 +221,71 @@ reasons_dataset_version <- get_active_dataset_version(
 )
 
 message(
-  "Schools dataset version selected: ",
+  "Current schools dataset version selected: ",
   schools_dataset_version,
   if (is.null(schools_preview_token)) " (published)" else " (pre-release)"
 )
 
 message(
-  "Reasons dataset version selected: ",
+  "Current reasons dataset version selected: ",
   reasons_dataset_version,
   if (is.null(reasons_preview_token)) " (published)" else " (pre-release)"
 )
 
 
+# -------------------------------------------------------------------------
+# Previous academic year API versions
+# -------------------------------------------------------------------------
+# These are the fixed published API dataset versions for 2025/26.
+#
+# IMPORTANT:
+# Keep these as character strings so versions such as "3.20" retain their
+# full API version number.
+
+previous_schools_dataset_version <- "2.22"
+previous_reasons_dataset_version <- "3.20"
+
+
+# -------------------------------------------------------------------------
+# API configuration by academic year
+# -------------------------------------------------------------------------
+# The current academic year uses the dynamically selected active version.
+# 2025/26 always uses the fixed published versions above and therefore
+# does not use preview tokens.
+
+academic_year_api_config <- list(
+  "2026/27" = list(
+    schools_version = schools_dataset_version,
+    reasons_version = reasons_dataset_version,
+    schools_preview_token = schools_preview_token,
+    reasons_preview_token = reasons_preview_token
+  ),
+  "2025/26" = list(
+    schools_version = previous_schools_dataset_version,
+    reasons_version = previous_reasons_dataset_version,
+    schools_preview_token = NULL,
+    reasons_preview_token = NULL
+  )
+)
+
+message(
+  "2026/27 API versions: schools = ",
+  academic_year_api_config[["2026/27"]]$schools_version,
+  ", reasons = ",
+  academic_year_api_config[["2026/27"]]$reasons_version
+)
+
+message(
+  "2025/26 API versions: schools = ",
+  academic_year_api_config[["2025/26"]]$schools_version,
+  ", reasons = ",
+  academic_year_api_config[["2025/26"]]$reasons_version
+)
+
+
 message("Sourcing prerun utils")
 source("R/prerun_utils.R")
+
 message("Sourcing fetch data")
 source("R/fetch_data.R")
 
@@ -289,26 +344,71 @@ region_la_lookup <- dfeR::wd_pcon_lad_la_rgn_ctry |>
 
 message("Pulling in SQID lookups from API")
 
-reasons_sqids <- fetch_sqid_lookup(
+
+# -------------------------------------------------------------------------
+# Current academic year SQID lookups
+# -------------------------------------------------------------------------
+
+reasons_sqids_current <- fetch_sqid_lookup(
   reasons_dataset_id,
-  version = reasons_dataset_version,
-  preview_token = reasons_preview_token,
+  version = academic_year_api_config[["2026/27"]]$reasons_version,
+  preview_token = academic_year_api_config[["2026/27"]]$reasons_preview_token,
   ees_environment = ees_api_env
 )
 
-persistent_absence_sqids <- fetch_sqid_lookup(
-  persistent_absence_dataset_id,
-  version = persistent_absence_ref_version,
-  ees_environment = ees_api_env
-)
-
-schools_submitting_sqids <- fetch_sqid_lookup(
+schools_submitting_sqids_current <- fetch_sqid_lookup(
   schools_submitting_dataset_id,
-  version = schools_dataset_version,
-  preview_token = schools_preview_token,
+  version = academic_year_api_config[["2026/27"]]$schools_version,
+  preview_token = academic_year_api_config[["2026/27"]]$schools_preview_token,
   ees_environment = ees_api_env
 )
 
+
+# -------------------------------------------------------------------------
+# Previous academic year 2025/26 SQID lookups
+# -------------------------------------------------------------------------
+# These use the fixed published versions and therefore do not use
+# preview tokens.
+
+reasons_sqids_previous <- fetch_sqid_lookup(
+  reasons_dataset_id,
+  version = academic_year_api_config[["2025/26"]]$reasons_version,
+  preview_token = NULL,
+  ees_environment = ees_api_env
+)
+
+schools_submitting_sqids_previous <- fetch_sqid_lookup(
+  schools_submitting_dataset_id,
+  version = academic_year_api_config[["2025/26"]]$schools_version,
+  preview_token = NULL,
+  ees_environment = ees_api_env
+)
+
+
+# -------------------------------------------------------------------------
+# Store the academic-year SQID lookups together
+# -------------------------------------------------------------------------
+
+reasons_sqids_by_academic_year <- list(
+  "2026/27" = reasons_sqids_current,
+  "2025/26" = reasons_sqids_previous
+)
+
+schools_submitting_sqids_by_academic_year <- list(
+  "2026/27" = schools_submitting_sqids_current,
+  "2025/26" = schools_submitting_sqids_previous
+)
+
+
+# -------------------------------------------------------------------------
+# Persistent absence
+# -------------------------------------------------------------------------
+# Persistent absence is not available for the 2026/27 academic year.
+# Do not fetch persistent absence here in global.R.
+#
+# Persistent absence should only be fetched/used when the user selects
+# a time period belonging to an academic year for which persistent
+# absence data is available, such as 2025/26.
 
 # Data manipulation ----------------------------------------------------------------------------
 # Read in data
