@@ -33,12 +33,19 @@ server <- function(input, output, session) {
   #   "2025/26|yeartodate"
 
   selected_period_value <- reactive({
-    value <- selected_time_frame()
+    value <- input$ts_choice
+
+    valid_values <- c(
+      "2026/27|latestweeks",
+      "2026/27|yeartodate",
+      "2025/26|latestweeks",
+      "2025/26|yeartodate"
+    )
 
     if (
       is.null(value) ||
         !nzchar(value) ||
-        !grepl("\\|", value)
+        !value %in% valid_values
     ) {
       return("2026/27|latestweeks")
     }
@@ -590,7 +597,8 @@ server <- function(input, output, session) {
     final
   }) |>
     shiny::bindCache(
-      reasons_data_version_info()$version,
+      selected_academic_year(),
+      selected_reasons_version(),
       input$school_choice
     )
 
@@ -728,106 +736,155 @@ server <- function(input, output, session) {
     )
   })
 
-  # Reactive dates for dropdown
-  # reactive_latestweeks_string <- reactive({
-  #   latestweek_line <- most_recent_week_lookup %>%
-  #     filter(geographic_level == input$geography_choice)
-  #   if (input$geography_choice == "Regional") {
-  #     latestweek_line <- latestweek_line %>%
-  #       filter(region_name == input$region_choice)
-  #   } else if (input$geography_choice == "Local authority") {
-  #     latestweek_line <- latestweek_line %>% filter(la_name == input$la_choice)
-  #   }
-  #   paste0(
-  #     "Latest week - ",
-  #     latestweek_line %>% pull(week_start),
-  #     " to ",
-  #     latestweek_line %>% pull(week_end)
-  #   )
-  # })
-  reactive_latestweeks_string <- reactive({
-    ref_date <- latest_week_data() |>
-      dplyr::arrange(desc(reference_date)) |>
-      dplyr::slice(1) |>
-      dplyr::pull(reference_date)
+  # Reactive dates and choices for dropdown --------------------------------------
 
-    ref_date <- as.Date(ref_date)
+  academic_year_start_date <- function(academic_year) {
+    if (academic_year == "2026/27") {
+      return(as.Date("2026-09-07"))
+    }
 
-    # reference_date is MONDAY → show Monday to Friday
+    if (academic_year == "2025/26") {
+      return(as.Date("2025-09-08"))
+    }
+
+    as.Date(NA)
+  }
+
+  get_latest_week_date <- function(
+    academic_year,
+    geography_choice,
+    region_choice,
+    la_choice
+  ) {
+    config <- academic_year_api_config[[academic_year]]
+    schools_sqids <-
+      schools_submitting_sqids_by_academic_year[[academic_year]]
+
+    result <- eesyapi::query_dataset(
+      schools_submitting_dataset_id,
+      dataset_version = config$schools_version,
+      preview_token = config$schools_preview_token,
+      geographies = geography_query(
+        geography_choice,
+        region_choice,
+        la_choice
+      ),
+      filter_items = list(
+        time_frame = schools_sqids$filters$time_frame$monday,
+        school_phase = schools_sqids$filters$education_phase$allschools
+      ),
+      ees_environment = ees_api_env
+    )
+
+    latest_date <- result |>
+      dplyr::mutate(reference_date = as.Date(reference_date)) |>
+      dplyr::filter(!is.na(reference_date)) |>
+      dplyr::summarise(latest_date = max(reference_date)) |>
+      dplyr::pull(latest_date)
+
+    as.Date(latest_date)
+  }
+
+  current_year_latest_date <- reactive({
+    get_latest_week_date(
+      academic_year = "2026/27",
+      geography_choice = input$geography_choice,
+      region_choice = input$region_choice,
+      la_choice = input$la_choice
+    )
+  }) |>
+    shiny::bindCache(
+      academic_year_api_config[["2026/27"]]$schools_version,
+      input$geography_choice,
+      input$region_choice,
+      input$la_choice
+    )
+
+  previous_year_latest_date <- reactive({
+    get_latest_week_date(
+      academic_year = "2025/26",
+      geography_choice = input$geography_choice,
+      region_choice = input$region_choice,
+      la_choice = input$la_choice
+    )
+  }) |>
+    shiny::bindCache(
+      academic_year_api_config[["2025/26"]]$schools_version,
+      input$geography_choice,
+      input$region_choice,
+      input$la_choice
+    )
+
+  current_latestweeks_string <- reactive({
+    ref_date <- current_year_latest_date()
+    paste0("Latest week 2026/27 - ", ref_date, " to ", ref_date + 4)
+  })
+
+  current_yeartodate_string <- reactive({
+    ref_date <- current_year_latest_date()
     paste0(
-      "Latest week - ",
-      ref_date,
+      "Year to date 2026/27 - ",
+      academic_year_start_date("2026/27"),
       " to ",
       ref_date + 4
     )
   })
 
-  # reactive_yeartodate_string <- reactive({
-  #   year_line <- year_lookup %>%
-  #     filter(geographic_level == input$geography_choice)
-  #   if (input$geography_choice == "Regional") {
-  #     year_line <- year_line %>% filter(region_name == input$region_choice)
-  #   } else if (input$geography_choice == "Local authority") {
-  #     year_line <- year_line %>% filter(la_name == input$la_choice)
-  #   }
-  #   paste0(
-  #     "Year to date - ",
-  #     year_line %>% pull(year_start),
-  #     " to ",
-  #     year_line %>% pull(year_end)
-  #   )
-  # })
+  previous_latestweeks_string <- reactive({
+    ref_date <- previous_year_latest_date()
+    paste0("Latest week 2025/26 - ", ref_date, " to ", ref_date + 4)
+  })
 
-  reactive_yeartodate_string <- reactive({
-    year_line <- latest_week_data()
-
-    # ✅ ensure only ONE row
-    year_line <- year_line |>
-      dplyr::arrange(desc(reference_date)) |>
-      dplyr::slice(1)
-
-    dates <- as.Date(year_line$reference_date)
-
-    if (length(dates) == 0) {
-      return("Year to date - no data available")
-    }
-
-    start_date <- if (dates >= as.Date("2026-09-01")) {
-      as.Date("2026-09-07")
-    } else {
-      as.Date("2025-09-08")
-    }
-
-    end_date <- dates + 4
-
+  previous_yeartodate_string <- reactive({
+    ref_date <- previous_year_latest_date()
     paste0(
-      "Year to date - ",
-      start_date,
+      "Year to date 2025/26 - ",
+      academic_year_start_date("2025/26"),
       " to ",
-      end_date
+      ref_date + 4
     )
   })
 
   reactive_period_selected <- reactive({
-    if (selected_time_frame() == "latestweeks") {
-      period <- reactive_latestweeks_string()
-    } else {
-      period <- reactive_yeartodate_string()
-    }
-    period
+    switch(selected_period_value(),
+      "2026/27|latestweeks" = current_latestweeks_string(),
+      "2026/27|yeartodate" = current_yeartodate_string(),
+      "2025/26|latestweeks" = previous_latestweeks_string(),
+      "2025/26|yeartodate" = previous_yeartodate_string(),
+      current_latestweeks_string()
+    )
   })
 
   observe({
-    newchoices <- c(latest_weeks = "latestweeks", ytd_dates = "yeartodate")
-    names(newchoices) <- c(
-      reactive_latestweeks_string(),
-      reactive_yeartodate_string()
+    current_selection <- isolate(input$ts_choice)
+
+    valid_values <- c(
+      "2026/27|latestweeks",
+      "2026/27|yeartodate",
+      "2025/26|latestweeks",
+      "2025/26|yeartodate"
     )
+
+    if (
+      is.null(current_selection) ||
+        !current_selection %in% valid_values
+    ) {
+      current_selection <- "2026/27|latestweeks"
+    }
+
+    newchoices <- valid_values
+    names(newchoices) <- c(
+      current_latestweeks_string(),
+      current_yeartodate_string(),
+      previous_latestweeks_string(),
+      previous_yeartodate_string()
+    )
+
     updateSelectInput(
-      session,
-      "ts_choice",
+      session = session,
+      inputId = "ts_choice",
       choices = newchoices,
-      selected = selected_time_frame()
+      selected = current_selection
     )
   })
 
@@ -1554,62 +1611,79 @@ server <- function(input, output, session) {
   })
 
   output$headline_persistent_absence <- renderUI({
-    if (selected_time_frame() == "latestweeks") {
-      tagList(
-        tags$p(
-          "To view persistent absence figures, select \"year to date\" in the drop-down menu.",
-          "Figures are not provided in the weekly or daily data because persistent absence is a",
-          "measure over time and not valid for short time periods. Underlying data relating to",
-          "the summer, spring and autumn terms and year to date is available at the ",
-          dfeshiny::external_link(
+    # Persistent absence does not exist for 2026/27.
+    if (selected_academic_year() == "2026/27") {
+      return(
+        tagList(
+          tags$p(
             paste0(
-              "https://explore-education-statistics.service.gov.uk/find-statistics/",
-              ees_pub_slug
-            ),
-            paste(ees_pub_name, "publication on Explore education statistics")
-          ),
-          "."
-        )
-      )
-    } else {
-      lines <- pa_data() |>
-        filter(
-          geographic_level == input$geography_choice
-        )
-      if (input$geography_choice == "Local authority") {
-        comparator_level <- "Regional"
-      } else if (input$geography_choice == "Regional") {
-        comparator_level <- "National"
-      } else {
-        comparator_level <- NULL
-      }
-
-      if (!is.null(comparator_level)) {
-        comparators <- pa_data() |>
-          filter(
-            geographic_level == comparator_level
-          )
-      }
-      tagList(
-        tags$p(
-          "A pupil enrolment is identified as persistently absent if they have missed",
-          "10% or more of their possible sessions in the year to date."
-        ),
-        shiny::tags$ul(
-          shiny::tags$li(
-            headline_bullet(
-              lines |> magrittr::extract2("persistent_absence_percent"),
-              comparators |> magrittr::extract2("persistent_absence_percent"),
-              "persistently absent",
-              input$geography_choice,
-              input$la_choice,
-              input$region_choice,
-              subject = "pupils"
+              "Persistent absence data is not currently available ",
+              "for the 2026/27 academic year."
             )
           )
         )
       )
     }
+
+    # Persistent absence is not shown for a single week.
+    if (selected_time_frame() == "latestweeks") {
+      return(
+        tagList(
+          tags$p(
+            paste0(
+              "To view persistent absence figures, select ",
+              "\"Year to date 2025/26\" in the time-period menu. "
+            ),
+            paste0(
+              "Persistent absence is a measure over time and is ",
+              "not provided for a single week."
+            )
+          )
+        )
+      )
+    }
+
+    lines <- pa_data() |>
+      dplyr::filter(geographic_level == input$geography_choice)
+
+    comparator_level <- if (input$geography_choice == "Local authority") {
+      "Regional"
+    } else if (input$geography_choice == "Regional") {
+      "National"
+    } else {
+      NULL
+    }
+
+    comparator_value <- NULL
+
+    if (!is.null(comparator_level)) {
+      comparator_value <- pa_data() |>
+        dplyr::filter(geographic_level == comparator_level) |>
+        dplyr::pull(persistent_absence_percent)
+    }
+
+    tagList(
+      tags$p(
+        paste0(
+          "A pupil enrolment is identified as persistently absent ",
+          "if they have missed 10% or more of their possible ",
+          "sessions in the year to date."
+        )
+      ),
+      shiny::tags$ul(
+        shiny::tags$li(
+          headline_bullet(
+            lines |> dplyr::pull(persistent_absence_percent),
+            comparator_value,
+            "persistently absent",
+            input$geography_choice,
+            input$la_choice,
+            input$region_choice,
+            subject = "pupils"
+          )
+        )
+      )
+    )
   })
 
   # Creating reactive dates for text ------------------------------------------------------------

@@ -6214,7 +6214,7 @@
       "checksum": "940dff53b51d664e52e90e4349a97eaa"
     },
     ".Rprofile": {
-      "checksum": "e5a515901fecb542247e6828d6cdc1ac"
+      "checksum": "6de9e985e580508689677ece3277b21b"
     },
     "attendance-dashboard-private.yml": {
       "checksum": "f5e1431916b396f4071091b7aa14e5e7"
@@ -6337,7 +6337,7 @@
       "checksum": "088c760f9591a3ce66f3a3aa320ceae1"
     },
     "server.R": {
-      "checksum": "52f5ac19ca16fed36756450d1ce76f4b"
+      "checksum": "fad973f7ddac3208636838696c0d03ae"
     },
     "tests/testthat.R": {
       "checksum": "12e9b09de5275bdc13bde6ae5a82f8b1"
