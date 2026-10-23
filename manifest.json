@@ -6214,13 +6214,13 @@
       "checksum": "940dff53b51d664e52e90e4349a97eaa"
     },
     ".Rprofile": {
-      "checksum": "1d1afd96eab689695697eeb96ebf8850"
+      "checksum": "9eb4b4f6b234526f16768ae9d260f62a"
     },
     "attendance-dashboard-private.yml": {
-      "checksum": "67aa148c3a54dc82af6d93ee8584f0d0"
+      "checksum": "f5e1431916b396f4071091b7aa14e5e7"
     },
     "azure-pipelines.yml": {
-      "checksum": "161e6e3c4a8af841144c1f338c7049d8"
+      "checksum": "c95d3c4a76745ea49c4b16f0de21e55f"
     },
     "CODE_OF_CONDUCT.md": {
       "checksum": "7dcf9b0b5bac78fc7d7fe45f8c5102b1"
@@ -6289,7 +6289,7 @@
       "checksum": "33bce00050768810c97392bb0bb418da"
     },
     "R/dashboard_panels.R": {
-      "checksum": "c7d66396fa490ca64d8d4ac00e582618"
+      "checksum": "2604864036b40702cb4bb4ce7c59b001"
     },
     "R/fetch_data.R": {
       "checksum": "53f26c570f79a935ea0a6cf8582dd91a"
@@ -6298,10 +6298,13 @@
       "checksum": "4816dd071ef6e621cf90cadc4dc94ba1"
     },
     "R/headline_panel.R": {
-      "checksum": "a1697c67bf148bf9a3ea8da85f5b3b0a"
+      "checksum": "5d0962304c06d2249a2168e9505e76b6"
     },
     "R/line_formatters.R": {
       "checksum": "a6f6eeece707c39c7483e0ab05746572"
+    },
+    "R/new_buttons.R": {
+      "checksum": "72f05caeeb594cbb2ccc353c5a282ea1"
     },
     "R/plotting.R": {
       "checksum": "8536baebc83f24153f99846975cd3a83"
@@ -6343,88 +6346,88 @@
       "checksum": "12e9b09de5275bdc13bde6ae5a82f8b1"
     },
     "tests/testthat/_snaps/UI_tests/001.json": {
-      "checksum": "798e1bd4ebbab03d66829aae55c2f9ee"
+      "checksum": "e6b22184d0c7984d9936c1013d82f904"
     },
     "tests/testthat/_snaps/UI_tests/001_.png": {
-      "checksum": "766b231fab2b8e649559ca306c667418"
+      "checksum": "a0cd4bc2703a8e160f6cea42dc509ca2"
     },
     "tests/testthat/_snaps/UI_tests/002.json": {
-      "checksum": "289290e3d9b59398b2b5efc89e5e86d7"
+      "checksum": "297e41d7e0d5523cbcbeacea513769df"
     },
     "tests/testthat/_snaps/UI_tests/002_.png": {
-      "checksum": "f49490f2f3bf346e54ff61376312efd9"
+      "checksum": "af5f52eff6ca827914f2d717d00fa556"
     },
     "tests/testthat/_snaps/UI_tests/003.json": {
-      "checksum": "4684c3c20bd97c6400f1df50d63146aa"
+      "checksum": "ce5260bb19643777f0b61632f0f3e209"
     },
     "tests/testthat/_snaps/UI_tests/003_.png": {
-      "checksum": "d2c1b37b9fce290bf33dd782a593f11e"
+      "checksum": "02dbeb371fc8f84ad0e73979d64a5d32"
     },
     "tests/testthat/_snaps/UI_tests/004.json": {
-      "checksum": "80c0d84118d21c804f60de2c323e67d8"
+      "checksum": "0661f2e677d0516e517db349420b7c1b"
     },
     "tests/testthat/_snaps/UI_tests/004_.png": {
-      "checksum": "763fc8951411a40b2d0723eddf6dbdec"
+      "checksum": "a3469e0b9e6b9721c8cbcf7614e6f35a"
     },
     "tests/testthat/_snaps/UI_tests/005.json": {
-      "checksum": "c4facb5ca8357776f4f5b5a709751f37"
+      "checksum": "57ecf73c4c447546e1bbec07f7380aeb"
     },
     "tests/testthat/_snaps/UI_tests/005_.png": {
-      "checksum": "e63751a0011fe423aeb710c1e9ac0212"
+      "checksum": "cc401d9b35cc591b4594e116db61ba55"
     },
     "tests/testthat/_snaps/UI_tests/006.json": {
-      "checksum": "33309c2a88d53d7f9c61e3d3ec851599"
+      "checksum": "e4c88cad17753466f7ea81e16702814b"
     },
     "tests/testthat/_snaps/UI_tests/006_.png": {
-      "checksum": "f1b4a6e3b0fb043cafbabf46268d0043"
+      "checksum": "9c5aef0d4d9e046e18b401aac0c3932a"
     },
     "tests/testthat/_snaps/UI_tests/007.json": {
-      "checksum": "4a9dec9608ae256a8cb7dc830733fcd4"
+      "checksum": "6d47c03410289e95407eb7157d5e3f8e"
     },
     "tests/testthat/_snaps/UI_tests/007_.png": {
-      "checksum": "4c2e402ede683f106a241dc5737a3899"
+      "checksum": "729d134bbcb0215e16fb2c4ec1c85765"
     },
     "tests/testthat/_snaps/UI_tests/008.json": {
       "checksum": "49755264f21961503ef387fccd65a745"
     },
     "tests/testthat/_snaps/UI_tests/008_.png": {
-      "checksum": "6d4e049437b1ac208bd2118bcc23aad8"
+      "checksum": "38671d582dc27afb75ac6a5dfa92c164"
     },
     "tests/testthat/_snaps/UI_tests/009.json": {
       "checksum": "3345533b1826289ea5f4aa668768c8d5"
     },
     "tests/testthat/_snaps/UI_tests/009_.png": {
-      "checksum": "803c221a8f4404d9e75ab746055678ee"
+      "checksum": "f28c13bf3486cb94d6aa1da4b85dc9f1"
     },
     "tests/testthat/_snaps/UI_tests/010.json": {
       "checksum": "382262baf3b84c9fe6abd7c527e19995"
     },
     "tests/testthat/_snaps/UI_tests/010_.png": {
-      "checksum": "78ed3e380937a35453169f603fa4d9e0"
+      "checksum": "c416886ab794c5d4dd58fb82ae745fef"
     },
     "tests/testthat/_snaps/UI_tests/011.json": {
       "checksum": "83cc45be69b9772b329e5304e2045b57"
     },
     "tests/testthat/_snaps/UI_tests/011_.png": {
-      "checksum": "0dd79236eaf031d33c5f8876b8f8e444"
+      "checksum": "88de1b5cdb7dd1155711345e39906340"
     },
     "tests/testthat/_snaps/UI_tests/012.json": {
       "checksum": "a06e8a69a5bc1d970b50f1abaa62286f"
     },
     "tests/testthat/_snaps/UI_tests/012_.png": {
-      "checksum": "26d34ddb0601d8cf3b56bf6498b0d6c9"
+      "checksum": "4cf77b968a210b4c16702a16f0093548"
     },
     "tests/testthat/_snaps/UI_tests/013.json": {
       "checksum": "95d79a4444aa0acce66412962227b39c"
     },
     "tests/testthat/_snaps/UI_tests/013_.png": {
-      "checksum": "df4ad548782e33d3cd03fce5131a9423"
+      "checksum": "a6ef0e755bd58e037ef1738ae0b9e81f"
     },
     "tests/testthat/_snaps/UI_tests/014.json": {
       "checksum": "d2c1c7306f51fde4c8bf2691f6db1204"
     },
     "tests/testthat/_snaps/UI_tests/014_.png": {
-      "checksum": "7fa5d9958a17811add4132472565685b"
+      "checksum": "42a999e159809034b920adff24c4c7e9"
     },
     "tests/testthat/setup-shinytest2.R": {
       "checksum": "d3e71278de0398bd2acaa6e00ad59114"

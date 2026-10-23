@@ -16,7 +16,7 @@ headline_panel <- function() {
               condition = paste0("input.ts_choice == 'yeartodate'"),
               textOutput("update_dates2")
             ),
-            uiOutput("headline_bullet_attendance_rate"),
+            uiOutput("headline_bullet_attendance_rate")
             # tags$h4("Persistent absence across year to date"),
             # uiOutput("headline_persistent_absence")
           )
@@ -33,6 +33,10 @@ headline_panel <- function() {
             ),
             tags$br(),
             tags$h5("Underlying data for the chart"),
+            govReactableDownloadButton(
+              table_id = "headline_chart_table",
+              filename = "headline-chart-table.csv"
+            ),
             reactableOutput("headline_chart_table")
           )
         )
