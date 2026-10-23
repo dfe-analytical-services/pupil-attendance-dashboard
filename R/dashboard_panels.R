@@ -396,6 +396,10 @@ dashboard_panel <- function() {
                     tags$b("Authorised absence"),
                     class = "govuk-body-s"
                   ),
+                  govReactableDownloadButton(
+                    table_id = "absence_auth_reasons_reactable",
+                    filename = "authorised-absence-reasons.csv"
+                  ),
                   govReactableOutput(
                     "absence_auth_reasons_reactable",
                     caption = ""
@@ -404,6 +408,10 @@ dashboard_panel <- function() {
                   tags$p(
                     tags$b("Unauthorised absence"),
                     class = "govuk-body-s"
+                  ),
+                  govReactableDownloadButton(
+                    table_id = "absence_unauth_reasons_reactable",
+                    filename = "unauthorised-absence-reasons.csv"
                   ),
                   govReactableOutput(
                     "absence_unauth_reasons_reactable",
