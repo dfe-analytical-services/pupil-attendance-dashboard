@@ -317,7 +317,7 @@ ees_pub_slug <- "pupil-attendance-in-schools"
 team_email <- "schools.statistics@education.gov.uk"
 
 # Some standard geography lookups
-region_la_lookup <- dfeR::wd_pcon_lad_la_rgn_ctry |>
+region_la_lookup <- dfeR::geo_hierarchy |>
   filter(country_name == "England") |>
   select(region_name, region_code, la_name, new_la_code) |>
   distinct() |>
