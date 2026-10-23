@@ -6214,13 +6214,13 @@
       "checksum": "940dff53b51d664e52e90e4349a97eaa"
     },
     ".Rprofile": {
-      "checksum": "1d1afd96eab689695697eeb96ebf8850"
+      "checksum": "587ae34453f3e5fe9cf7e94151f814e5"
     },
     "attendance-dashboard-private.yml": {
       "checksum": "67aa148c3a54dc82af6d93ee8584f0d0"
     },
     "azure-pipelines.yml": {
-      "checksum": "161e6e3c4a8af841144c1f338c7049d8"
+      "checksum": "c95d3c4a76745ea49c4b16f0de21e55f"
     },
     "CODE_OF_CONDUCT.md": {
       "checksum": "7dcf9b0b5bac78fc7d7fe45f8c5102b1"
@@ -6274,7 +6274,7 @@
       "checksum": "12ec8a8981de38a0c0e149b9e67ae51c"
     },
     "global.R": {
-      "checksum": "3bd2212982dc764eb9287015ace61c60"
+      "checksum": "2b8bca0858f36759757bcd7efbca6414"
     },
     "google-analytics.html": {
       "checksum": "c6848bc54d17ba53262714266256e5c2"
