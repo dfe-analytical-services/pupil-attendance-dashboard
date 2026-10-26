@@ -185,49 +185,120 @@ if (ees_api_env == "prod") {
 # }
 
 get_active_dataset_version <- function(dataset_id, preview_token = NULL) {
+  # First try preview data if a token exists
+  if (!is.null(preview_token)) {
+    preview_version <- tryCatch(
+      {
+        versions <- eesyapi::get_dataset_versions(
+          dataset_id,
+          preview_token = preview_token,
+          ees_environment = ees_api_env
+        )
+
+        version <- versions |>
+          dplyr::filter(is.na(release_date)) |>
+          dplyr::slice(1) |>
+          dplyr::pull(version)
+
+        if (length(version) == 0 || is.na(version)) {
+          stop("No available pre-release version")
+        }
+
+        message(
+          "Using pre-release version ",
+          version,
+          " for dataset ",
+          dataset_id
+        )
+
+        list(
+          version = as.character(version),
+          token_valid = TRUE
+        )
+      },
+      error = function(e) {
+        message(
+          "Preview token invalid or expired for dataset ",
+          dataset_id,
+          ". Falling back to published data. Error: ",
+          e$message
+        )
+
+        NULL
+      }
+    )
+
+    if (!is.null(preview_version)) {
+      return(preview_version)
+    }
+  }
+
+  # Fallback to latest published version
+
   versions <- eesyapi::get_dataset_versions(
     dataset_id,
-    preview_token = preview_token,
     ees_environment = ees_api_env
   )
 
-  if (!is.null(preview_token)) {
-    version <- versions |>
-      dplyr::filter(is.na(release_date)) |>
-      dplyr::slice(1) |>
-      dplyr::pull(version)
-  } else {
-    version <- versions |>
-      dplyr::filter(!is.na(release_date)) |>
-      dplyr::slice(1) |>
-      dplyr::pull(version)
-  }
+  version <- versions |>
+    dplyr::filter(!is.na(release_date)) |>
+    dplyr::slice(1) |>
+    dplyr::pull(version)
 
-  as.character(version)
+  message(
+    "Using published version ",
+    version,
+    " for dataset ",
+    dataset_id
+  )
+
+  list(
+    version = as.character(version),
+    token_valid = FALSE
+  )
 }
 
-schools_dataset_version <- get_active_dataset_version(
+schools_version_info <- get_active_dataset_version(
   schools_submitting_dataset_id,
   schools_preview_token
 )
 
-reasons_dataset_version <- get_active_dataset_version(
+schools_dataset_version <- schools_version_info$version
+
+if (!schools_version_info$token_valid) {
+  schools_preview_token <- NULL
+}
+
+reasons_version_info <- get_active_dataset_version(
   reasons_dataset_id,
   reasons_preview_token
 )
 
+reasons_dataset_version <- reasons_version_info$version
+
+if (!reasons_version_info$token_valid) {
+  reasons_preview_token <- NULL
+}
+
 message(
   "Schools dataset version selected: ",
   schools_dataset_version,
-  if (is.null(schools_preview_token)) " (published)" else " (pre-release)"
+  if (is.null(schools_preview_token)) {
+    " (published)"
+  } else {
+    " (pre-release)"
+  }
 )
 
 message(
   "Reasons dataset version selected: ",
   reasons_dataset_version,
-  if (is.null(reasons_preview_token)) " (published)" else " (pre-release)"
+  if (is.null(reasons_preview_token)) {
+    " (published)"
+  } else {
+    " (pre-release)"
+  }
 )
-
 
 message("Sourcing prerun utils")
 source("R/prerun_utils.R")
@@ -246,7 +317,7 @@ ees_pub_slug <- "pupil-attendance-in-schools"
 team_email <- "schools.statistics@education.gov.uk"
 
 # Some standard geography lookups
-region_la_lookup <- dfeR::wd_pcon_lad_la_rgn_ctry |>
+region_la_lookup <- dfeR::geo_hierarchy |>
   filter(country_name == "England") |>
   select(region_name, region_code, la_name, new_la_code) |>
   distinct() |>
@@ -311,7 +382,7 @@ schools_submitting_sqids <- fetch_sqid_lookup(
 
 
 # Data manipulation ----------------------------------------------------------------------------
-# Read in data
+# Read in data #
 # attendance_data_raw <- fread("data/Weekly_dummy_data.csv")
 
 #### SECTION 1 - date filters ####
