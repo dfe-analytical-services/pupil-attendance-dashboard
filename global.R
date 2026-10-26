@@ -382,7 +382,7 @@ schools_submitting_sqids <- fetch_sqid_lookup(
 
 
 # Data manipulation ----------------------------------------------------------------------------
-# Read in data
+# Read in data #
 # attendance_data_raw <- fread("data/Weekly_dummy_data.csv")
 
 #### SECTION 1 - date filters ####
