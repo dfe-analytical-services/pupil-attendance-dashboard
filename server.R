@@ -2185,25 +2185,76 @@ server <- function(input, output, session) {
   })
 
   # Data download button ---------------------------------------------------------------------------------
-  output$downloadData <- downloadHandler(
+
+  output$downloadData <- shiny::downloadHandler(
     filename = function() {
-      paste("Underlying_data", Sys.Date(), ".csv", sep = "")
+      paste0(
+        "attendance_absence_data_",
+        Sys.Date(),
+        ".csv"
+      )
     },
     content = function(con) {
-      underlying_data <- EES_daily_data %>%
-        filter(school_type %in% c("Primary", "Secondary", "Special", "Total"))
-      write.csv(underlying_data, con, row.names = FALSE)
+      underlying_data <- reasons_data()
+
+      write.csv(
+        underlying_data,
+        con,
+        row.names = FALSE,
+        na = ""
+      )
     }
   )
 
-  output$downloadData2 <- downloadHandler(
+  output$downloadData2 <- shiny::downloadHandler(
     filename = function() {
-      paste("Underlying_data", Sys.Date(), ".csv", sep = "")
+      paste0(
+        "local_authority_absence_data_",
+        Sys.Date(),
+        ".csv"
+      )
     },
     content = function(con) {
-      underlying_data <- EES_daily_data %>%
-        filter(school_type %in% c("Primary", "Secondary", "Special", "Total"))
-      write.csv(underlying_data, con, row.names = FALSE)
+      underlying_data <- reasons_data()
+
+      write.csv(
+        underlying_data,
+        con,
+        row.names = FALSE,
+        na = ""
+      )
+    }
+  )
+
+  output$downloadData2 <- shiny::downloadHandler(
+    filename = function() {
+      if (input$dash == "la comparisons") {
+        paste0(
+          "local_authority_absence_data_",
+          Sys.Date(),
+          ".csv"
+        )
+      } else {
+        paste0(
+          "attendance_absence_data_",
+          Sys.Date(),
+          ".csv"
+        )
+      }
+    },
+    content = function(con) {
+      if (input$dash == "la comparisons") {
+        underlying_data <- la_data()
+      } else {
+        underlying_data <- reasons_data()
+      }
+
+      write.csv(
+        underlying_data,
+        con,
+        row.names = FALSE,
+        na = ""
+      )
     }
   )
 
@@ -2305,7 +2356,19 @@ server <- function(input, output, session) {
       ))
     })
 
-    leaflet(dat) |>
+    leaflet(
+      dat,
+      options = leafletOptions(
+        minZoom = 4,
+        maxBoundsViscosity = 1.0
+      )
+    ) |>
+      fitBounds(
+        lng1 = -6.8,
+        lat1 = 49.99,
+        lng2 = 1.95,
+        lat2 = 55.5
+      ) |>
       addTiles(
         urlTemplate = paste0(
           "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=",
