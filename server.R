@@ -2186,7 +2186,7 @@ server <- function(input, output, session) {
 
   # Data download button ---------------------------------------------------------------------------------
 
-  output$downloadData <- downloadHandler(
+  output$downloadData <- shiny::downloadHandler(
     filename = function() {
       paste0(
         "attendance_absence_data_",
@@ -2206,7 +2206,7 @@ server <- function(input, output, session) {
     }
   )
 
-  output$downloadData2 <- downloadHandler(
+  output$downloadData2 <- shiny::downloadHandler(
     filename = function() {
       paste0(
         "local_authority_absence_data_",
@@ -2226,7 +2226,7 @@ server <- function(input, output, session) {
     }
   )
 
-  output$downloadData2 <- downloadHandler(
+  output$downloadData2 <- shiny::downloadHandler(
     filename = function() {
       if (input$dash == "la comparisons") {
         paste0(
